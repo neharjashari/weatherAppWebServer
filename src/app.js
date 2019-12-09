@@ -1,19 +1,23 @@
 const path = require('path');
 const express = require('express');
+const hbs = require('hbs');
 
 console.log(__dirname);
 console.log(path.join(__dirname, '../public'));
 
 const app = express();
 
+// Define paths for Express config
 const publicDirectoryPath = path.join(__dirname, '../public');
-const viewsPath = path.join(__dirname, '../templates');
+const viewsPath = path.join(__dirname, '../templates/views');
+const partialsPath = path.join(__dirname, '../templates/partials');
 
-// Dynamic files
+// Setup handlebars engine and views location (Dynamic files)
 app.set('view engine', 'hbs');
 app.set('views', viewsPath); // Without this command the hbs only works if the follder that contains the .hbs file is named "views"
+hbs.registerPartials(partialsPath);
 
-// Serving up static files
+// Setup static directory to serve
 app.use(express.static(publicDirectoryPath));
 
 app.get('', (req, res) => {
@@ -33,8 +37,9 @@ app.get('/about', (req, res) => {
 
 app.get('/help', (req, res) => {
 	res.render('help', {
+		message: 'You access the pages by switching the path of URL.',
 		title: 'Help',
-		message: 'You access the pages by switching the path of URL.'
+		name: 'Nehar Jashari'
 	});
 });
 
@@ -42,6 +47,24 @@ app.get('/weather', (req, res) => {
 	res.send({
 		forecast: 'Supermjegull',
 		location: 'Prishtina'
+	});
+});
+
+app.get('/help/*', (req, res) => {
+	res.render('404', {
+		title: '404',
+		name: 'Nehar Jashari',
+		errorMessage: 'Article not found'
+	});
+});
+
+// Match everything else (every other route)
+// This needs to come last, to be able to work
+app.get('*', (req, res) => {
+	res.render('404', {
+		title: '404',
+		name: 'Nehar Jashari',
+		errorMessage: 'Page not found'
 	});
 });
 
