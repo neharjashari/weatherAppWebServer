@@ -1,6 +1,8 @@
 const path = require('path');
 const express = require('express');
 const hbs = require('hbs');
+const geocode = require('./utils/geocode');
+const forecast = require('./utils/forecast');
 
 console.log(__dirname);
 console.log(path.join(__dirname, '../public'));
@@ -44,9 +46,46 @@ app.get('/help', (req, res) => {
 });
 
 app.get('/weather', (req, res) => {
+	const address = req.query.address;
+
+	if (!address) {
+		return res.send({
+			errorMessage: 'You must provide an address term'
+		});
+	}
+
+	// = {} 	-Destructuring by setting a default empty object, in order to work properly.
+	geocode(address, (error, { location, latitude, longitude } = {}) => {
+		if (error) {
+			return res.send({ error });
+		}
+
+		forecast(latitude, longitude, (error, forecastData) => {
+			if (error) {
+				return res.send({ error });
+			}
+
+			res.send({
+				forecast: forecastData,
+				location: location
+			});
+		});
+	});
+});
+
+app.get('/products', (req, res) => {
+	// console.log(req.query);
+	// console.log(req.query.search);
+	// console.log(req.query.rating);
+
+	if (!req.query.search) {
+		return res.send({
+			errorMessage: 'You must provide a search term'
+		});
+	}
+
 	res.send({
-		forecast: 'Supermjegull',
-		location: 'Prishtina'
+		products: []
 	});
 });
 
@@ -71,24 +110,3 @@ app.get('*', (req, res) => {
 app.listen(3000, () => {
 	console.log('Server is up on port 3000.');
 });
-
-// app.get('', (req, res) => {
-// 	res.send('<h1>Weather</h1>');
-// });
-
-// app.get('/help', (req, res) => {
-// 	res.send([
-// 		{
-// 			name: 'Nehar',
-// 			age: 21
-// 		},
-// 		{
-// 			name: 'Andrew',
-// 			age: 27
-// 		}
-// 	]);
-// });
-
-// app.get('/about', (req, res) => {
-// 	res.send('<h1>About Page</h1>');
-// });
